@@ -2771,14 +2771,17 @@ function poseActor(a, dt, t) {
       hipL = e * 0.35; hipR = -e * 0.35;
       torsoX = 0.25;
     } else if (anim.type === 'step') {
-      torsoX = -0.36 * e;
-      torsoY = 0.18 * e * (a.vx >= 0 ? 1 : -1);
-      rootY += e * 0.1;
-      hipL = -0.55 * e; hipR = 0.4 * e;
-      kneeL = 0.35 + e * 0.5; kneeR = 0.25 + e * 0.2;
-      shLx = 0.6 + e * 0.7; shRx = 0.5 + e * 0.9;
-      shLz = 0.35; shRz = -0.3;
-      elLx = -0.5; elRx = -0.6;
+      const plant = Math.sin(Math.min(1, p * 1.7) * Math.PI);
+      const recoil = Math.sin(Math.min(1, p * 1.25) * Math.PI / 2);
+      torsoX = -0.22 - 0.3 * plant;
+      torsoY = 0.22 * e * (a.vx >= 0 ? 1 : -1);
+      rootY += plant * 0.14;
+      rootRoll = e * 0.12 * (a.vx >= 0 ? 1 : -1);
+      hipL = -0.45 * e - 0.28 * recoil; hipR = 0.38 * e + 0.2 * recoil;
+      kneeL = 0.28 + e * 0.58; kneeR = 0.2 + e * 0.32;
+      shLx = 0.48 + e * 0.88; shRx = 0.5 + e * 1.05;
+      shLz = 0.42; shRz = -0.38;
+      elLx = -0.55; elRx = -0.62;
     } else if (anim.type === 'jab') {
       torsoX = 0.3 * e;
       rootY += e * 0.045;
@@ -2792,14 +2795,19 @@ function poseActor(a, dt, t) {
       kneeL = 0.2 + e * 0.45; kneeR = 0.2 + e * 0.45;
       shLx = 0.2 + e * 0.5; shRx = 0.2 + e * 0.6;
     } else if (anim.type === 'shoot') {
-      const lift = Math.sin(Math.min(1, p * 1.4) * Math.PI);
-      rootY += lift * 0.24;
-      hipL = 0.3 + lift * 0.5; hipR = 0.25 + lift * 0.35;
-      kneeL = 0.2 + lift * 0.55; kneeR = 0.2 + lift * 0.4;
-      shLx = 0.16 + p * 2.2; shRx = 0.16 + p * 2.9;
-      shLz = 0.22; shRz = -0.24;
-      elLx = -0.25 - p * 0.45; elRx = -0.25 - p * 0.65;
-      torsoX = 0.02 - p * 0.08;
+      const gather = Math.sin(Math.min(1, p * 1.35) * Math.PI * 0.5);
+      const rise = Math.sin(Math.min(1, p * 1.08) * Math.PI * 0.5);
+      const release = updown((p - 0.48) / 0.34);
+      const follow = updown((p - 0.72) / 0.28);
+      rootY += rise * (1 - follow * 0.58) * 0.34;
+      hipL = 0.18 + gather * 0.42 - follow * 0.15; hipR = 0.16 + gather * 0.34 - follow * 0.12;
+      kneeL = 0.16 + gather * 0.5; kneeR = 0.14 + gather * 0.4;
+      shLx = 0.22 + gather * 1.15 + release * 1.0 - follow * 0.18;
+      shRx = 0.2 + gather * 1.5 + release * 1.35 - follow * 0.12;
+      shLz = 0.3; shRz = -0.32;
+      elLx = -0.36 - gather * 0.38 + release * 0.16;
+      elRx = -0.34 - gather * 0.52 + release * 0.28;
+      torsoX = 0.08 + gather * 0.14 - release * 0.2;
     } else if (anim.type === 'pass') {
       shRx = 0.16 + e * 1.65; shLx = 0.16 + e * 0.5;
       elRx = -0.25 + e * 0.65; elLx = -0.3 - e * 0.25;
@@ -2812,14 +2820,16 @@ function poseActor(a, dt, t) {
       torsoX = 0.08 + e * 0.18;
       kneeL = 0.25 * e; kneeR = 0.2 * e;
     } else if (anim.type === 'contest') {
-      const jump = Math.sin(p * Math.PI) * 0.16;
+      const jump = Math.sin(p * Math.PI) * 0.38;
+      const reach = Math.sin(Math.min(1, p * 1.45) * Math.PI * 0.5);
       rootY += jump;
-      shLx = 0.16 + e * 2.55; shRx = 0.16 + e * 2.55;
-      shLz = 0.18; shRz = -0.18;
-      elLx = -0.25; elRx = -0.25;
-      hipL = 0.25 * e; hipR = 0.25 * e;
-      kneeL = 0.2 + e * 0.5; kneeR = 0.2 + e * 0.5;
-      torsoX = 0.05;
+      rootPitch = -reach * 0.08;
+      shLx = 0.18 + reach * 2.55; shRx = 0.18 + reach * 2.75;
+      shLz = 0.24; shRz = -0.24;
+      elLx = -0.22 - reach * 0.12; elRx = -0.22 - reach * 0.12;
+      hipL = 0.18 + e * 0.18; hipR = 0.18 + e * 0.18;
+      kneeL = 0.18 + e * 0.62; kneeR = 0.18 + e * 0.62;
+      torsoX = 0.06 - reach * 0.1;
     } else if (anim.type === 'steal') {
       torsoX = 0.4 * e;
       shLx = 0.16 + e * 1.3; shRx = 0.16 + e * 1.15;
@@ -2840,11 +2850,16 @@ function poseActor(a, dt, t) {
       shLz = 1.15; shRz = -1.15;
       elLx = -0.3; elRx = -0.3;
     } else if (anim.type === 'blocked') {
-      rootRoll = e * 0.28;
-      shLx = 1.7 + e * 0.8; shRx = 1.4 + e * 0.9;
-      shLz = 0.7; shRz = -0.55;
-      elLx = -0.1; elRx = -0.2;
-      torsoX = -0.2;
+      const recoil = Math.sin(Math.min(1, p * 1.45) * Math.PI * 0.5);
+      rootRoll = e * 0.42;
+      rootPitch = -recoil * 0.12;
+      rootY += e * 0.08;
+      shLx = 1.5 + e * 1.0; shRx = 1.25 + e * 1.15;
+      shLz = 0.82; shRz = -0.68;
+      elLx = -0.25 - e * 0.1; elRx = -0.3 - e * 0.12;
+      hipL = 0.25 * e; hipR = -0.18 * e;
+      kneeL = 0.2 + e * 0.38; kneeR = 0.18 + e * 0.28;
+      torsoX = -0.18 - recoil * 0.12;
     } else if (anim.type === 'fall') {
       rootY += Math.sin(Math.min(1, p * 1.8) * Math.PI / 2) * 0.18;
       rootRoll = Math.sin(Math.min(1, p * 1.8) * Math.PI / 2) * 1.42;
