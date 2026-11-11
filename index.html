@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#071313">
+<title>COURTSIDE 3v3 — The Run</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ccircle cx='20' cy='20' r='18' fill='%23071313' stroke='%23d8ff3e' stroke-width='2'/%3E%3Ctext x='20' y='26' text-anchor='middle' font-family='sans-serif' font-size='18' font-weight='900' fill='%23d8ff3e'%3EC%3C/text%3E%3C/svg%3E">
+<style>
+:root{color-scheme:dark;--lime:#d8ff3e;--cream:#f4f1e8;--coral:#ff7a5f;--ink:#071313}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#071313;color:var(--cream);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none}
+body{background:radial-gradient(ellipse at 50% 45%,#20352f 0%,#0b1c1b 65%,#071313 100%)}
+button{font:inherit;color:inherit;cursor:pointer}
+#game{position:relative;width:100%;height:100%;min-height:100dvh;overflow:hidden}
+canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.grain{position:absolute;inset:0;pointer-events:none;z-index:2;opacity:.09;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.32'/%3E%3C/svg%3E")}
+.topbar{position:absolute;z-index:3;top:0;left:0;right:0;padding:24px clamp(18px,4vw,56px);display:flex;align-items:flex-start;justify-content:space-between;pointer-events:none}
+.brand{display:flex;align-items:center;gap:12px;font-size:12px;font-weight:900;letter-spacing:.18em}
+.brandmark{width:32px;height:32px;border:1px solid #d8ff3e;border-radius:50%;display:grid;place-items:center;color:var(--lime);font-size:14px}
+.brand small{display:block;color:#9eaaa0;font-size:9px;letter-spacing:.24em;margin-top:3px}
+.live{display:flex;align-items:center;gap:7px;color:#d9e2d9;font-size:10px;font-weight:800;letter-spacing:.2em}
+.live i{display:block;width:6px;height:6px;border-radius:50%;background:#c9ff37;box-shadow:0 0 12px #c9ff37}
+.scoreboard{position:absolute;z-index:4;top:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:22px;padding:12px 21px;border:1px solid #ffffff2e;background:linear-gradient(180deg,#081413fa,#081413f0);border-radius:8px;box-shadow:0 12px 44px #0008,0 0 0 1px #0006 inset;pointer-events:none}
+.team{text-align:center;min-width:52px}
+.team label{display:block;color:#94a39a;font-size:8px;letter-spacing:.2em;font-weight:800}
+.team strong{display:block;font-size:23px;line-height:1.1;letter-spacing:-.04em;transition:.15s}
+.team.home strong{color:var(--lime)}
+.team strong.pop{transform:scale(1.35);color:#fff}
+.clock{min-width:62px;text-align:center;border-left:1px solid #ffffff22;border-right:1px solid #ffffff22;padding:0 14px}
+.clock strong{font-variant-numeric:tabular-nums;font-size:20px;letter-spacing:.03em}
+.clock small{display:block;color:#9aa99f;font-size:8px;letter-spacing:.18em;margin-top:2px;white-space:nowrap}
+.statbox{position:absolute;top:104px;left:clamp(18px,4vw,56px);z-index:3;display:flex;gap:8px;pointer-events:none;transition:opacity .3s}
+.stat{padding:9px 13px;border:1px solid #ffffff20;background:#091918c9;border-radius:5px;min-width:71px}
+.stat span{display:block;color:#82948a;font-size:8px;font-weight:800;letter-spacing:.16em}
+.stat b{display:block;margin-top:2px;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.shotclock{position:absolute;top:105px;right:clamp(18px,4vw,56px);z-index:3;display:flex;align-items:center;gap:10px;color:#a4b1a8;font-size:9px;font-weight:800;letter-spacing:.18em;pointer-events:none;transition:opacity .3s;background:#091918cf;border:1px solid #ffffff1e;border-radius:5px;padding:6px 10px}
+.shotclock b{font-size:21px;color:var(--cream);font-variant-numeric:tabular-nums}
+.shotclock.hot b{color:#ff735d}
+.bottom-hud{position:absolute;z-index:4;bottom:22px;left:clamp(18px,4vw,56px);right:clamp(18px,4vw,56px);display:flex;align-items:flex-end;justify-content:space-between;pointer-events:none;transition:opacity .3s}
+.tips{color:#a7b3a9;font-size:10px;line-height:1.8;letter-spacing:.06em;text-shadow:0 2px 6px #000}
+.tips b{color:#edf4e9}
+.tips .lit{color:var(--lime)}
+.pause-pill{position:absolute;z-index:4;top:56px;right:clamp(18px,4vw,56px);border:1px solid #ffffff38;background:#091817b8;border-radius:4px;padding:8px 11px;font-size:9px;font-weight:900;letter-spacing:.16em;pointer-events:auto;visibility:hidden}
+#game.active .pause-pill{visibility:visible}
+.pause-pill:hover{border-color:var(--lime);color:var(--lime)}
+.toast{position:absolute;z-index:5;left:50%;top:25%;transform:translate(-50%,-10px);font-size:clamp(18px,2.8vw,28px);font-weight:950;letter-spacing:.08em;color:var(--lime);text-shadow:0 4px 20px #000;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.bad{color:var(--coral)}
+.toast small{display:block;text-align:center;font-size:10px;letter-spacing:.2em;color:#d9e5d8;margin-top:4px}
+.overlay{position:absolute;z-index:8;inset:0;display:grid;place-items:center;padding:24px;background:linear-gradient(90deg,#071313e8,#0713134d 55%,#0713139e);transition:opacity .35s,visibility .35s}
+.overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.card{width:min(570px,100%);margin-right:auto;margin-left:clamp(16px,8vw,130px);position:relative}
+.eyebrow{display:flex;align-items:center;gap:9px;color:var(--lime);font-weight:900;font-size:10px;letter-spacing:.25em}
+.eyebrow:before{content:"";width:23px;height:1px;background:var(--lime)}
+h1{font-size:clamp(54px,8.5vw,110px);line-height:.83;letter-spacing:-.085em;margin:19px 0 20px;font-weight:950}
+h1 span{display:block;color:var(--lime)}
+.deck{max-width:375px;color:#b8c5bb;font-size:14px;line-height:1.65;margin-bottom:28px}
+.cta-row{display:flex;align-items:center;gap:17px;flex-wrap:wrap}
+.play-btn{border:0;background:var(--lime);color:#09110b;font-size:11px;font-weight:950;letter-spacing:.15em;padding:17px 24px;border-radius:4px;box-shadow:0 8px 24px #d8ff3e22;transition:transform .15s,filter .15s;white-space:nowrap}
+.play-btn:hover{transform:translateY(-2px);filter:brightness(1.08)}
+.play-btn .arrow{font-size:16px;margin-left:20px}
+.ghost-btn{border:1px solid #ffffff45;background:#0a1816b8;border-radius:4px;padding:15px 18px;font-size:10px;font-weight:900;letter-spacing:.14em;transition:.15s;color:#dfe8dc;white-space:nowrap}
+.ghost-btn:hover{border-color:var(--lime);color:var(--lime)}
+.ghost-btn.hidden{display:none}
+.subhint{color:#96a49a;font-size:10px;line-height:1.5;letter-spacing:.05em}
+.rules{display:flex;gap:22px;margin-top:30px;padding-top:18px;border-top:1px solid #ffffff20}
+.rule{color:#95a39a;font-size:9px;letter-spacing:.12em;line-height:1.45}
+.rule b{display:block;color:#e4e9e0;font-size:10px;margin-bottom:5px}
+.result{font-size:12px;color:#b8c5bb;line-height:1.7;min-height:38px;margin-top:-8px;margin-bottom:18px}
+.build-tag{display:inline-flex;align-items:center;gap:7px;color:#0b1410;background:#d8ff3e;border-radius:3px;padding:4px 8px;font-size:9px;font-weight:950;letter-spacing:.14em;margin-bottom:16px}
+
+/* 2K-style shot meter beside the player */
+.side-meter{position:absolute;z-index:6;width:70px;display:none;pointer-events:none;transform:translate(-50%,-50%);filter:drop-shadow(0 4px 8px #0008)}
+.side-meter.show{display:block}
+.sm-quality{width:170px;margin-left:-50px;font-size:7.5px;font-weight:950;letter-spacing:.1em;text-align:center;color:var(--lime);margin-bottom:4px;text-shadow:0 2px 4px #000;white-space:nowrap}
+.sm-body{display:flex;justify-content:flex-end;align-items:flex-end;gap:5px}
+.sm-caption{writing-mode:vertical-rl;text-orientation:mixed;font-size:7px;font-weight:900;letter-spacing:.2em;color:#c9d6c8;transform:rotate(180deg);text-shadow:0 2px 4px #000}
+.sm-track{position:relative;width:11px;height:118px;border-radius:6px;border:1px solid #e9f2df8f;background:#071313d9;box-shadow:0 0 12px #000a;overflow:visible}
+.sm-fill{position:absolute;left:1px;right:1px;bottom:1px;height:0;border-radius:5px;background:linear-gradient(0deg,#ff6d55 0%,#ffd64b 68%,#d8ff3e 100%);box-shadow:0 0 10px #d8ff3e66}
+.sm-window{position:absolute;left:-4px;right:-4px;background:#d8ff3e2e;border-top:1px solid #efffd0;border-bottom:1px solid #efffd0;box-shadow:0 0 12px #d8ff3e55}
+.sm-label{margin-top:4px;text-align:center;font-size:7px;font-weight:950;letter-spacing:.12em;color:#dfe8db;text-shadow:0 2px 4px #000}
+
+/* floating player tags */
+#tags{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}
+.tag{position:absolute;left:0;top:0;transform:translate(-50%,-100%);padding:2px 6px;border-radius:3px;background:#071313b8;border:1px solid #ffffff24;font-size:8px;font-weight:900;letter-spacing:.09em;white-space:nowrap;color:#dce8da;opacity:0;transition:opacity .18s;text-shadow:0 1px 3px #000}
+.tag.show{opacity:1}
+.tag.home{color:#d8ff3e}
+.tag.away{color:#ff8d78}
+.tag.active{border-color:#d8ff3e;background:#0a1a12e0;box-shadow:0 0 12px #d8ff3e3d}
+.tag small{color:#a6b4a6;font-size:7px;margin-left:3px;font-weight:800}
+.tag .scr{color:#fff;background:#d8ff3e;color:#09110b;border-radius:2px;padding:0 3px;margin-left:3px}
+
+#shot-feedback{position:absolute;z-index:6;transform:translate(-50%,-100%);font-size:23px;font-weight:950;letter-spacing:.06em;opacity:0;transition:.18s;pointer-events:none;text-shadow:0 3px 10px #000;white-space:nowrap}
+#shot-feedback.show{opacity:1}
+#shot-feedback.green{color:#d8ff3e}
+#shot-feedback.bad{color:#ff8068}
+#shot-feedback small{display:block;text-align:center;font-size:8px;letter-spacing:.16em;color:#d7e3d4;font-weight:800;margin-top:3px}
+
+/* touch */
+.touch-controls{display:none;position:absolute;z-index:5;inset:auto 0 18px;justify-content:space-between;align-items:flex-end;padding:0 24px;pointer-events:none}
+.stick{width:112px;height:112px;border-radius:50%;border:1px solid #ffffff3d;background:#0919189c;position:relative;pointer-events:auto;touch-action:none}
+.stick:before{content:"";position:absolute;inset:27px;border:1px solid #ffffff21;border-radius:50%}
+.nub{position:absolute;width:37px;height:37px;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;background:#d8ff3e;border:3px solid #ffffffaa;box-shadow:0 2px 14px #0009}
+.shoot-touch{pointer-events:auto;width:82px;height:82px;border-radius:50%;border:2px solid #d8ff3e;background:#d8ff3e24;color:var(--lime);font-size:10px;font-weight:950;letter-spacing:.1em;box-shadow:0 0 25px #d8ff3e21;touch-action:none}
+.touch-actions{display:none;position:absolute;z-index:5;right:20px;bottom:112px;grid-template-columns:1fr 1fr;gap:7px;pointer-events:auto}
+.mini-btn{width:60px;height:34px;border-radius:6px;border:1px solid #ffffff45;background:#071313c9;color:#e6ede1;font-size:8px;font-weight:950;letter-spacing:.08em;touch-action:none}
+.mini-btn:active{background:#d8ff3e;color:#09110b}
+.mobile-tip{display:none;color:#b2bdb2;font-size:9px;text-align:center;line-height:1.5;letter-spacing:.1em;margin-bottom:7px}
+#game:not(.active) .statbox,#game:not(.active) .shotclock,#game:not(.active) .bottom-hud,#game:not(.active) .scoreboard{opacity:0}
+#game:not(.active) .touch-controls,#game:not(.active) .touch-actions{display:none!important}
+#game:not(.active) #tags{display:none}
+#game:not(.active) .side-meter{display:none!important}
+
+/* roster select */
+.select-overlay{position:absolute;z-index:10;inset:0;display:flex;flex-direction:column;padding:20px clamp(16px,4vw,52px) 16px;background:radial-gradient(ellipse at 74% 10%,#19342d 0%,#091917 42%,#061110 100%);overflow-y:auto;transition:opacity .3s,visibility .3s}
+.select-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.select-top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.select-kicker{display:flex;align-items:center;gap:9px;color:var(--lime);font-weight:900;font-size:9px;letter-spacing:.25em}
+.select-kicker:before{content:"";width:23px;height:1px;background:var(--lime)}
+.select-title{font-size:clamp(30px,4.6vw,58px);line-height:.88;letter-spacing:-.065em;margin:8px 0 6px;font-weight:950}
+.select-title span{color:var(--lime)}
+.select-sub{color:#9bafa0;font-size:10px;letter-spacing:.08em;margin:0}
+.steps{display:flex;gap:18px;color:#6f8377;font-size:8px;font-weight:900;letter-spacing:.16em;white-space:nowrap}
+.steps .on{color:var(--lime)}
+.steps .done{color:#d5e2d2}
+.lineup-bar{display:flex;gap:8px;margin:15px 0 12px}
+.slot{flex:1;min-height:42px;border:1px dashed #ffffff2b;border-radius:5px;padding:6px 10px;display:flex;flex-direction:column;justify-content:center;background:#08161499;transition:.2s}
+.slot.filled{border-style:solid;border-color:#d8ff3e5c;background:#0c2018c9}
+.slot.rival.filled{border-color:#ff7a5f66;background:#22100fbd}
+.slot span{color:#7e9184;font-size:7px;font-weight:900;letter-spacing:.17em}
+.slot b{font-size:11px;font-weight:950;letter-spacing:.04em;color:#e7efe3;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot.filled b{color:var(--lime)}
+.slot.rival.filled b{color:#ff9a85}
+.roster-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.star-card{position:relative;overflow:hidden;text-align:left;min-height:88px;border:1px solid #ffffff1f;border-radius:5px;background:linear-gradient(145deg,#0e211e 0%,#091715 75%);padding:9px 10px;transition:transform .12s,border-color .12s,background .12s}
+.star-card:hover{transform:translateY(-1px);border-color:#ffffff5e}
+.star-card .snum{position:absolute;right:7px;top:0;font-size:27px;font-weight:950;line-height:1;color:#ffffff12;letter-spacing:-.06em}
+.star-card .srating{font-size:12px;font-weight:950;color:var(--lime);letter-spacing:.02em}
+.star-card .srating small{font-size:7px;color:#829587;margin-left:2px;font-weight:800}
+.star-card strong{display:block;font-size:11px;line-height:1.06;margin:7px 0 3px;letter-spacing:.01em;color:#eef3e9;position:relative;z-index:1}
+.star-card .meta{font-size:7px;color:#8fa397;letter-spacing:.11em;font-weight:800}
+.star-card .trait{font-size:7px;color:#6f8376;letter-spacing:.12em;font-weight:900;margin-top:5px}
+.star-card.picked{border-color:var(--lime);background:linear-gradient(145deg,#20331a 0%,#0d1c12 78%);box-shadow:0 0 0 1px #d8ff3e4d,0 6px 18px #0006}
+.star-card.picked:after{content:"YOUR SQUAD";position:absolute;right:6px;bottom:5px;font-size:6px;letter-spacing:.12em;font-weight:950;color:#09110b;background:var(--lime);padding:2px 4px;border-radius:2px}
+.star-card.rival{border-color:#ff7a5f;background:linear-gradient(145deg,#301614 0%,#1b0d0c 78%);box-shadow:0 0 0 1px #ff7a5f3d}
+.star-card.rival:after{content:"RIVALS";position:absolute;right:6px;bottom:5px;font-size:6px;letter-spacing:.12em;font-weight:950;color:#1b0d0c;background:#ff7a5f;padding:2px 4px;border-radius:2px}
+.star-card.locked{opacity:.24;pointer-events:none;filter:grayscale(.5)}
+.select-foot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:13px}
+.select-hint{font-size:8px;color:#91a095;letter-spacing:.08em;line-height:1.5;max-width:360px}
+.select-foot .play-btn{padding:13px 18px;font-size:9px}
+.select-foot .ghost-btn{padding:11px 14px;font-size:9px}
+#select-next:disabled{opacity:.3;cursor:not-allowed;transform:none;filter:none}
+
+@media(max-width:700px){
+  .topbar{padding:13px 15px}
+  .brand{font-size:10px}
+  .brandmark{width:28px;height:28px}
+  .live{font-size:7px;letter-spacing:.13em}
+  .scoreboard{top:58px;gap:12px;padding:8px 12px}
+  .team{min-width:39px}
+  .team strong{font-size:19px}
+  .clock{padding:0 10px}
+  .clock strong{font-size:16px}
+  .statbox{top:114px;left:15px;gap:5px}
+  .stat{min-width:52px;padding:6px 8px}
+  .stat span{font-size:7px}
+  .stat b{font-size:12px}
+  .shotclock{top:116px;right:15px;font-size:8px;gap:6px}
+  .shotclock b{font-size:18px}
+  .bottom-hud{bottom:13px;left:14px;right:14px}
+  .tips{display:none}
+  .touch-controls{display:flex}
+  .touch-actions{display:grid}
+  .mobile-tip{display:block}
+  .overlay{background:linear-gradient(90deg,#071313e9,#071313a8)}
+  .card{margin:0;align-self:start;margin-top:16vh}
+  .card h1{font-size:clamp(54px,15vw,80px)}
+  .deck{max-width:305px;font-size:13px}
+  .rules{gap:15px}
+  .rule{font-size:8px}
+  .pause-pill{top:160px;right:15px;padding:7px 9px;background:#071313e8}
+  .mobile-tip{position:fixed;left:14px;bottom:186px;transform:none;margin:0;padding:5px 9px;border-radius:5px;background:#0713138f;font-size:7px;line-height:1.45;letter-spacing:.06em;white-space:normal;width:210px;text-align:left}
+  .hud-scrim{height:230px;background:linear-gradient(180deg,#05100fe8 0%,#05100f9c 58%,transparent 100%)}
+  .toast{top:33%}
+  .select-overlay{padding:16px 14px 12px}
+  .select-top{align-items:flex-start}
+  .steps{gap:10px;font-size:7px;margin-top:5px}
+  .roster-grid{grid-template-columns:repeat(2,1fr);gap:6px}
+  .star-card{min-height:78px;padding:8px 9px}
+  .star-card strong{font-size:11px}
+  .slot{min-height:38px;padding:5px 8px}
+  .slot b{font-size:10px}
+  .select-foot{gap:8px}
+  .select-hint{font-size:7px;max-width:100%}
+  .side-meter{width:62px}
+  .sm-quality{width:150px;margin-left:-40px;font-size:6.5px;letter-spacing:.05em;background:#071313b8;border-radius:4px;padding:3px 4px;margin-bottom:3px}
+  .sm-track{height:100px;width:10px}
+  .sm-caption{font-size:6px}
+  .tag{font-size:7px;padding:2px 4px}
+  .tag small{font-size:6px}
+  #shot-feedback{font-size:19px}
+  .touch-actions{right:14px;bottom:108px}
+  .mini-btn{width:56px;height:32px;font-size:7px}
+  .shoot-touch{width:76px;height:76px}
+  .stick{width:104px;height:104px}
+}
+@media(max-height:640px){
+  .card{margin-top:5vh}
+  .card h1{font-size:48px;margin:10px 0}
+  .deck{margin-bottom:12px;font-size:12px}
+  .rules{margin-top:12px;padding-top:10px}
+  .build-tag{margin-bottom:8px}
+  .select-overlay{padding-top:12px}
+  .select-title{font-size:30px}
+  .lineup-bar{margin:8px 0}
+  .star-card{min-height:74px}
+  .select-sub{display:none}
+}
+
+
+#flash{position:absolute;inset:0;z-index:7;pointer-events:none;background:radial-gradient(circle at 50% 42%,#fffdf2cc 0%,#d8ff3e44 28%,transparent 62%);opacity:0;transition:opacity .22s}
+#flash.on{opacity:1;transition:opacity .02s}
+#drive-hint{position:absolute;z-index:5;left:50%;bottom:88px;transform:translate(-50%,8px);display:flex;align-items:center;gap:8px;padding:7px 11px;border:1px solid #d8ff3e80;border-radius:4px;background:#071313d9;opacity:0;transition:.18s;pointer-events:none;box-shadow:0 0 24px #d8ff3e22}
+#drive-hint.show{opacity:1;transform:translate(-50%,0)}
+#drive-hint b{font-size:9px;font-weight:950;letter-spacing:.14em;color:var(--lime);white-space:nowrap}
+#drive-hint small{font-size:7px;font-weight:800;letter-spacing:.12em;color:#c8d5c3;white-space:nowrap}
+#game.defense .team.home strong{color:#ffb26b}
+#game.defense .clock small{color:#ff9a85}
+#game.defense .shoot-touch{border-color:#ff7a5f;color:#ffb39e;background:#ff7a5f1f;box-shadow:0 0 25px #ff7a5f2b}
+#game.defense .tag.active{border-color:#ff8d78;box-shadow:0 0 12px #ff7a5f55}
+#game.defense .side-meter{display:none!important}
+@media(max-width:700px){#drive-hint{bottom:176px;padding:6px 9px}#drive-hint b{font-size:8px}#drive-hint small{font-size:6px}}
+.hud-scrim{position:absolute;z-index:2;top:0;left:0;right:0;height:170px;background:linear-gradient(180deg,#05100fe8 0%,#05100f9c 46%,transparent 100%);pointer-events:none}
+
+#control-arrow{position:absolute;z-index:4;left:0;top:0;width:30px;height:30px;pointer-events:none;opacity:0;transform:translate(-50%,-100%);transition:opacity .12s;filter:drop-shadow(0 2px 7px #000) drop-shadow(0 0 7px #d8ff3eaa)}
+#control-arrow.show{opacity:1}
+#control-arrow:before{content:"";display:block;width:0;height:0;margin:2px auto 0;border-left:10px solid transparent;border-right:10px solid transparent;border-top:17px solid var(--lime)}
+#control-arrow:after{content:"";display:block;width:18px;height:3px;margin:2px auto 0;border-radius:2px;background:var(--lime);opacity:.8}
+#game.defense #control-arrow{filter:drop-shadow(0 2px 7px #000) drop-shadow(0 0 7px #ff9d7faa)}
+#game.defense #control-arrow:before{border-top-color:#ffb39e}
+#game.defense #control-arrow:after{background:#ffb39e}
+</style>
+</head>
+<body>
+<div id="game">
+<div class="hud-scrim"></div>
+<div class="grain"></div>
+<header class="topbar"><div class="brand"><div class="brandmark">C</div><div>COURTSIDE<small>3V3 STREETBALL SERIES</small></div></div><div class="live"><i></i> LIVE RUN &nbsp;·&nbsp; 3V3 · REAL STARS</div></header>
+<div class="scoreboard"><div class="team home"><label>YOU</label><strong id="score">00</strong></div><div class="clock"><strong id="time">1:30</strong><small id="phase-label">YOUR BALL</small></div><div class="team"><label>RIVALS</label><strong id="oppscore">00</strong></div></div>
+<div class="statbox"><div class="stat"><span>FG</span><b id="fg">0 / 0</b></div><div class="stat"><span>STREAK</span><b id="streak">—</b></div><div class="stat"><span id="onball-label">ON BALL</span><b id="onball" style="color:#d8ff3e">—</b></div></div><div class="shotclock" id="shotclock"><span>SHOT CLOCK</span><b id="shot-time">24</b></div>
+<button class="pause-pill" id="pause">Ⅱ &nbsp; PAUSE</button><div class="toast" id="toast">PERFECT RELEASE</div>
+<div class="bottom-hud"><div class="tips" id="tips"><b>W A S D</b> move &nbsp;·&nbsp; <b>SPACE</b> hold / release to shoot &nbsp;·&nbsp; <b>E</b> pass<br><b>Q</b> ask for screen &nbsp;·&nbsp; <b>C</b> crossover &nbsp;·&nbsp; <b>X</b> step back &nbsp;·&nbsp; <b>V</b> jab step &nbsp;·&nbsp; <b>SHIFT</b> sprint</div><div class="mobile-tip" id="mobile-tip">STICK TO MOVE · HOLD SHOOT · RELEASE GREEN<br>PASS · SCREEN · CROSS · STEP</div></div>
+<div class="side-meter" id="side-meter"><div class="sm-quality" id="sm-quality">OPEN</div><div class="sm-body"><div class="sm-caption" id="sm-caption">SHOT</div><div class="sm-track"><div class="sm-window" id="sm-window"></div><div class="sm-fill" id="sm-fill"></div></div></div><div class="sm-label" id="sm-label">RELEASE</div></div>
+<div id="shot-feedback">GREEN<small>SPLASH</small></div>
+<div id="drive-hint"><b>RIM RUN</b><small>HOLD SHOOT TO DUNK</small></div>
+<div id="flash"></div>
+<div id="tags"></div>
+<div id="control-arrow"></div>
+<div class="touch-controls"><div class="stick" id="stick"><div class="nub" id="nub"></div></div><button class="shoot-touch" id="shoot-touch">SHOOT</button></div>
+<div class="touch-actions"><button class="mini-btn" id="t-pass">PASS</button><button class="mini-btn" id="t-screen">SCREEN</button><button class="mini-btn" id="t-cross">CROSS</button><button class="mini-btn" id="t-step">STEP</button></div>
+<div class="overlay" id="overlay"><section class="card"><div class="build-tag">● 3V3 · 2K-STYLE SHOT METER</div><div class="eyebrow" id="eyebrow">AFTER HOURS · PICKUP RUN</div><h1 id="title">OWN THE<span>COURT.</span></h1><p class="deck" id="deck">Pick three superstars. Call for screens, break ankles, and let it fly in a full 3-on-3 run under the lights.</p><div class="result" id="result"></div><div class="cta-row"><button class="play-btn" id="play">BUILD YOUR SQUAD <span class="arrow">↗</span></button><button class="ghost-btn hidden" id="change">CHANGE SQUAD</button><div class="subhint">90 SECONDS ON THE CLOCK<br>REAL NBA STARS · REAL AI</div></div><div class="rules"><div class="rule"><b>01 — BUILD YOUR 3</b>Choose your superstars</div><div class="rule"><b>02 — RUN THE SET</b>Pass, screen, create</div><div class="rule"><b>03 — LET IT FLY</b>Release in the green</div></div></section></div>
+<div class="select-overlay hidden" id="select"><div class="select-top"><div><div class="select-kicker">3V3 · REAL NBA STARS</div><h2 class="select-title" id="select-title">BUILD YOUR <span>THREE.</span></h2><p class="select-sub" id="select-sub">Pick three superstars to run with. Ratings change your speed, range, and green window.</p></div><div class="steps"><span id="step1" class="on">01 YOUR SQUAD</span><span id="step2">02 RIVALS</span><span>03 TIP OFF</span></div></div><div class="lineup-bar" id="lineup-bar"></div><div class="roster-grid" id="roster-grid"></div><div class="select-foot"><button class="ghost-btn" id="select-back">BACK</button><button class="play-btn" id="select-next" disabled>NEXT: PICK RIVALS <span class="arrow">↗</span></button><div class="select-hint" id="select-hint">Pick 3 players for your squad.</div></div></div>
+</div>
+
+<script type="module" src="./game.js"></script>
+</body>
+</html>
